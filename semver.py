@@ -1,20 +1,44 @@
-from typing import Iterable
+from typing import Iterator, Union
 from typing import Tuple
 
 
 class Version:
     """
-    This is a basic Python Semantic Version library.
+    This is a minimal Python Semantic Version library.
 
-    >>> ver = Version(3, 4, 5)
+    Values can be passed as arbitrary number of `int` numbers, for example:
+
+    >>> v = Version(1, 0, 0)
+    >>> str(v)
+    '1.0.0'
+
+    Or as strings, which will be converted to versions:
+
+    >>> v = Version.from_string("1.0.0.5322")
+    >>> str(v)
+    '1.0.0.5322'
+    >>> v
+    Version(1, 0, 0, 5322)
+
+    Implementation of comparison operators (`__lt__`, `__gt__`, `__le__`, `__ge__`) allows for
+    sorting operations to work. For example:
+
+    >>> versionslist = [
+    ...     Version.from_string("1.0.0"), Version.from_string("1.0.1"),
+    ...     Version.from_string("0.9.95"), Version(0, 8, 97),
+    ...     Version(2024, 2, 25, 101), Version(1, 0, 0, 0)]
+    >>> sorted(versionslist)
+    [Version(0, 8, 97), Version(0, 9, 95), Version(1, 0, 0), Version(1, 0, 0, 0), Version(1, 0, 1), Version(2024, 2, 25, 101)]
+    >>> sorted(versionslist, reverse=True)
+    [Version(2024, 2, 25, 101), Version(1, 0, 1), Version(1, 0, 0, 0), Version(1, 0, 0), Version(0, 9, 95), Version(0, 8, 97)]
     """
 
     def __init__(self, *args: int) -> None:
         """Constructor
 
         >>> v = Version(2023, 3, 5)
-        >>> v  # doctest: +ELLIPSIS
-        <__main__.Version object at ...>
+        >>> v
+        Version(2023, 3, 5)
         """
         self.__fill_parts(*args)
 
@@ -25,12 +49,14 @@ class Version:
         >>> v = Version("a", 3, 4)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
-        TypeError: Parts of semantic version must be all integer
+        TypeError: Parts of semantic version must be all integer, 'a' passed
         """
         __version_parts: list = []
         for part in args:
             if not isinstance(part, int):
-                raise TypeError("Parts of semantic version must be all integer")
+                raise TypeError(
+                    f"Parts of semantic version must be all integer, '{part}' passed"
+                )
             __version_parts.append(part)
         self.__version_parts: Tuple[int] = tuple(__version_parts)
 
@@ -40,7 +66,7 @@ class Version:
 
         >>> vs = Version.from_string("2023.03.05")
         >>> vs  # doctest: +ELLIPSIS
-        <__main__.Version object at ...>
+        Version(2023, 3, 5)
         >>> v = Version.from_string("3.4.5.abc")  # doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
@@ -49,7 +75,7 @@ class Version:
         parts: list = [int(v) for v in version.split(".")]
         return Version(*parts)
 
-    def __iter__(self) -> Iterable[int]:
+    def __iter__(self) -> Iterator[int]:
         """Iterate through version parts, used for casting into list, tuple, etc...
 
         >>> v = Version(2023, 3, 5)
@@ -83,7 +109,7 @@ class Version:
         return ".".join([str(p) for p in self.__version_parts])
 
     def __eq__(self, b: object) -> bool:
-        """Implementation of "equals" internal type method for comparing values of same type
+        """Implementation of "==" internal type method for comparing values of same type
 
         >>> basev = Version(2023, 3, 5)
         >>> altv = Version.from_string("2024.03.05")
@@ -104,7 +130,7 @@ class Version:
         return self_parts == b_parts
 
     def __gt__(self, b: object) -> bool:
-        """Implementation of "greaterthan" internal type method for comparing values of same type
+        """Implementation of ">" internal type method for comparing values of same type
 
         >>> basev = Version(2023, 3, 5)
         >>> greaterv1 = Version(2023, 3, 5, 0)
@@ -129,7 +155,7 @@ class Version:
         return self_parts > b_parts
 
     def __lt__(self, b: object) -> bool:
-        """Implementation of "lesserthan" internal type method for comparing values of same type
+        """Implementation of "<" internal type method for comparing values of same type
 
         >>> basev = Version(2023, 3, 5)
         >>> greaterv1 = Version(2023, 3, 5, 0)
@@ -154,7 +180,7 @@ class Version:
         return self_parts < b_parts
 
     def __ge__(self, b: object) -> bool:
-        """Implementation of "greaterorequalthan" internal type method for comparing values of same type
+        """Implementation of ">=" internal type method for comparing values of same type
 
         >>> basev = Version(2023, 3, 5)
         >>> greaterv1 = Version(2023, 3, 5, 0)
@@ -179,7 +205,7 @@ class Version:
         return self_parts > b_parts or self_parts == b_parts
 
     def __le__(self, b: object) -> bool:
-        """Implementation of "lesserorequalthan" internal type method for comparing values of same type
+        """Implementation of "<=" internal type method for comparing values of same type
 
         >>> basev = Version(2023, 3, 5)
         >>> greaterv1 = Version(2023, 3, 5, 0)
@@ -233,6 +259,50 @@ class Version:
         """
         if not isinstance(b, type(self)):
             raise NotImplementedError("Can compare Version only with another Version")
+
+    def __repr__(self) -> str:
+        """Representation internal method
+
+        >>> v = Version.from_string("1.0.0.5322")
+        >>> v
+        Version(1, 0, 0, 5322)
+        """
+        return f"Version{self.__version_parts}"
+
+    def __getitem__(self, key: Union[int, slice]) -> Union[int, Tuple[int, ...]]:
+        """Getitem internal method
+
+        This method allows for cherry-picking version item by "decimal place".
+
+        >>> v = Version.from_string("2023.05.33.3242")
+        >>> v[2]
+        33
+        >>> v[1]
+        5
+        >>> v[1:]
+        (5, 33, 3242)
+        >>> v[-3]
+        5
+        >>> v[-4]
+        2023
+        >>> v = Version(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+        >>> k = slice(3, 15, 2)
+        >>> v[k]
+        (4, 6, 8, 10, 12, 14)
+        >>> v[54]  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        IndexError: ...
+        >>> v["here be dragons"]  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: ...
+        >>> v[23.18:"Pete The Duck"]  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: ...
+        """
+        return self.__version_parts[key]
 
 
 if __name__ == "__main__":
