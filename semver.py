@@ -1,4 +1,4 @@
-from typing import Iterator, Union
+from typing import Iterator, Union, List
 from typing import Tuple
 
 
@@ -51,14 +51,14 @@ class Version:
             ...
         TypeError: Parts of semantic version must be all integer, 'a' passed
         """
-        __version_parts: list = []
+        __version_parts: List[int] = []
         for part in args:
             if not isinstance(part, int):
                 raise TypeError(
                     f"Parts of semantic version must be all integer, '{part}' passed"
                 )
             __version_parts.append(part)
-        self.__version_parts: Tuple[int] = tuple(__version_parts)
+        self.__version_parts: Tuple[int, ...] = tuple(__version_parts)
 
     @staticmethod
     def from_string(version: str) -> "Version":
@@ -79,8 +79,8 @@ class Version:
         """Iterate through version parts, used for casting into list, tuple, etc...
 
         >>> v = Version(2023, 3, 5)
-        >>> vparts = tuple(v)
-        >>> vparts
+        >>> version_parts = tuple(v)
+        >>> version_parts
         (2023, 3, 5)
         """
         for part in self.__version_parts:
@@ -111,148 +111,148 @@ class Version:
     def __eq__(self, b: object) -> bool:
         """Implementation of "==" internal type method for comparing values of same type
 
-        >>> basev = Version(2023, 3, 5)
-        >>> altv = Version.from_string("2024.03.05")
-        >>> zerov = Version(2023, 3, 5, 0)
-        >>> samev = Version.from_string("2023.03.05")
-        >>> basev == altv
+        >>> version_base = Version(2023, 3, 5)
+        >>> version_alternate = Version.from_string("2024.03.05")
+        >>> version_with_zero = Version(2023, 3, 5, 0)
+        >>> version_same = Version.from_string("2023.03.05")
+        >>> version_base == version_alternate
         False
-        >>> basev == samev
+        >>> version_base == version_same
         True
-        >>> basev == zerov
+        >>> version_base == version_with_zero
         False
         """
         self.__validate(b)
 
         self_parts: tuple = self.__version_parts
-        b_parts: tuple = tuple(b)
+        b_parts: tuple = tuple(b)  # type: ignore
 
         return self_parts == b_parts
 
     def __gt__(self, b: object) -> bool:
         """Implementation of ">" internal type method for comparing values of same type
 
-        >>> basev = Version(2023, 3, 5)
-        >>> greaterv1 = Version(2023, 3, 5, 0)
-        >>> greaterv2 = Version(2024, 3, 5)
-        >>> greaterv3 = Version(2023, 3, 6)
-        >>> basev > greaterv1, basev > greaterv2, basev > greaterv3
+        >>> version_base = Version(2023, 3, 5)
+        >>> version_greater_1 = Version(2023, 3, 5, 0)
+        >>> version_greater_2 = Version(2024, 3, 5)
+        >>> version_greater_3 = Version(2023, 3, 6)
+        >>> version_base > version_greater_1, version_base > version_greater_2, version_base > version_greater_3
         (False, False, False)
-        >>> lesserv1 = Version(2023, 3, 4)
-        >>> lesserv2 = Version(2023, 3)
-        >>> lesserv3 = Version(2023, 1, 5)
-        >>> basev > lesserv1, basev > lesserv2, basev > lesserv3
+        >>> version_lesser_1 = Version(2023, 3, 4)
+        >>> version_lesser_2 = Version(2023, 3)
+        >>> version_lesser_3 = Version(2023, 1, 5)
+        >>> version_base > version_lesser_1, version_base > version_lesser_2, version_base > version_lesser_3
         (True, True, True)
-        >>> samev = Version.from_string("2023.3.5")
-        >>> basev > samev
+        >>> version_same = Version.from_string("2023.3.5")
+        >>> version_base > version_same
         False
         """
         self.__validate(b)
 
         self_parts: tuple = self.__version_parts
-        b_parts: tuple = tuple(b)
+        b_parts: tuple = tuple(b)  # type: ignore
 
         return self_parts > b_parts
 
     def __lt__(self, b: object) -> bool:
         """Implementation of "<" internal type method for comparing values of same type
 
-        >>> basev = Version(2023, 3, 5)
-        >>> greaterv1 = Version(2023, 3, 5, 0)
-        >>> greaterv2 = Version(2024, 3, 5)
-        >>> greaterv3 = Version(2023, 3, 6)
-        >>> basev < greaterv1, basev < greaterv2, basev < greaterv3
+        >>> version_base = Version(2023, 3, 5)
+        >>> version_greater_1 = Version(2023, 3, 5, 0)
+        >>> version_greater_2 = Version(2024, 3, 5)
+        >>> version_greater_3 = Version(2023, 3, 6)
+        >>> version_base < version_greater_1, version_base < version_greater_2, version_base < version_greater_3
         (True, True, True)
-        >>> lesserv1 = Version(2023, 3, 4)
-        >>> lesserv2 = Version(2023, 3)
-        >>> lesserv3 = Version(2023, 1, 5)
-        >>> basev < lesserv1, basev < lesserv2, basev < lesserv3
+        >>> version_lesser_1 = Version(2023, 3, 4)
+        >>> version_lesser_2 = Version(2023, 3)
+        >>> version_lesser_3 = Version(2023, 1, 5)
+        >>> version_base < version_lesser_1, version_base < version_lesser_2, version_base < version_lesser_3
         (False, False, False)
-        >>> samev = Version.from_string("2023.3.5")
-        >>> basev < samev
+        >>> version_same = Version.from_string("2023.3.5")
+        >>> version_base < version_same
         False
         """
         self.__validate(b)
 
         self_parts: tuple = self.__version_parts
-        b_parts: tuple = tuple(b)
+        b_parts: tuple = tuple(b)  # type: ignore
 
         return self_parts < b_parts
 
     def __ge__(self, b: object) -> bool:
         """Implementation of ">=" internal type method for comparing values of same type
 
-        >>> basev = Version(2023, 3, 5)
-        >>> greaterv1 = Version(2023, 3, 5, 0)
-        >>> greaterv2 = Version(2024, 3, 5)
-        >>> greaterv3 = Version(2023, 3, 6)
-        >>> basev >= greaterv1, basev >= greaterv2, basev >= greaterv3
+        >>> version_base = Version(2023, 3, 5)
+        >>> version_greater_1 = Version(2023, 3, 5, 0)
+        >>> version_greater_2 = Version(2024, 3, 5)
+        >>> version_greater_3 = Version(2023, 3, 6)
+        >>> version_base >= version_greater_1, version_base >= version_greater_2, version_base >= version_greater_3
         (False, False, False)
-        >>> lesserv1 = Version(2023, 3, 4)
-        >>> lesserv2 = Version(2023, 3)
-        >>> lesserv3 = Version(2023, 1, 5)
-        >>> basev >= lesserv1, basev >= lesserv2, basev >= lesserv3
+        >>> version_lesser_1 = Version(2023, 3, 4)
+        >>> version_lesser_2 = Version(2023, 3)
+        >>> version_lesser_3 = Version(2023, 1, 5)
+        >>> version_base >= version_lesser_1, version_base >= version_lesser_2, version_base >= version_lesser_3
         (True, True, True)
-        >>> samev = Version.from_string("2023.3.5")
-        >>> basev >= samev
+        >>> version_same = Version.from_string("2023.3.5")
+        >>> version_base >= version_same
         True
         """
         self.__validate(b)
 
         self_parts: tuple = self.__version_parts
-        b_parts: tuple = tuple(b)
+        b_parts: tuple = tuple(b)  # type: ignore
 
         return self_parts > b_parts or self_parts == b_parts
 
     def __le__(self, b: object) -> bool:
         """Implementation of "<=" internal type method for comparing values of same type
 
-        >>> basev = Version(2023, 3, 5)
-        >>> greaterv1 = Version(2023, 3, 5, 0)
-        >>> greaterv2 = Version(2024, 3, 5)
-        >>> greaterv3 = Version(2023, 3, 6)
-        >>> basev <= greaterv1, basev <= greaterv2, basev <= greaterv3
+        >>> version_base = Version(2023, 3, 5)
+        >>> version_greater_1 = Version(2023, 3, 5, 0)
+        >>> version_greater_2 = Version(2024, 3, 5)
+        >>> version_greater_3 = Version(2023, 3, 6)
+        >>> version_base <= version_greater_1, version_base <= version_greater_2, version_base <= version_greater_3
         (True, True, True)
-        >>> lesserv1 = Version(2023, 3, 4)
-        >>> lesserv2 = Version(2023, 3)
-        >>> lesserv3 = Version(2023, 1, 5)
-        >>> basev <= lesserv1, basev <= lesserv2, basev <= lesserv3
+        >>> version_lesser_1 = Version(2023, 3, 4)
+        >>> version_lesser_2 = Version(2023, 3)
+        >>> version_lesser_3 = Version(2023, 1, 5)
+        >>> version_base <= version_lesser_1, version_base <= version_lesser_2, version_base <= version_lesser_3
         (False, False, False)
-        >>> samev = Version.from_string("2023.3.5")
-        >>> basev <= samev
+        >>> version_same = Version.from_string("2023.3.5")
+        >>> version_base <= version_same
         True
         """
         self.__validate(b)
 
         self_parts: tuple = self.__version_parts
-        b_parts: tuple = tuple(b)
+        b_parts: tuple = tuple(b)  # type: ignore
 
         return self_parts < b_parts or self_parts == b_parts
 
     def __validate(self, b: object) -> None:
         """Make base validation for all internal comparison methods - whether types and lengths are the same
 
-        >>> basev = Version(2023, 3, 5)
-        >>> samev = Version(2023, 3, 5)
-        >>> basev == samev
+        >>> version_base = Version(2023, 3, 5)
+        >>> version_same = Version(2023, 3, 5)
+        >>> version_base == version_same
         True
-        >>> basev == 5.53  # doctest: +ELLIPSIS
+        >>> version_base == 5.53  # doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
         NotImplementedError: Can compare Version only with another Version
-        >>> basev > 5.53  # doctest: +ELLIPSIS
+        >>> version_base > 5.53  # doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
         NotImplementedError: Can compare Version only with another Version
-        >>> basev < 5.53  # doctest: +ELLIPSIS
+        >>> version_base < 5.53  # doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
         NotImplementedError: Can compare Version only with another Version
-        >>> basev >= 5.53  # doctest: +ELLIPSIS
+        >>> version_base >= 5.53  # doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
         NotImplementedError: Can compare Version only with another Version
-        >>> basev <= 5.53  # doctest: +ELLIPSIS
+        >>> version_base <= 5.53  # doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
         NotImplementedError: Can compare Version only with another Version
