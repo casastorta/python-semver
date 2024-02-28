@@ -31,6 +31,44 @@ class Version:
     [Version(0, 8, 97), Version(0, 9, 95), Version(1, 0, 0), Version(1, 0, 0, 0), Version(1, 0, 1), Version(2024, 2, 25, 101)]
     >>> sorted(versionslist, reverse=True)
     [Version(2024, 2, 25, 101), Version(1, 0, 1), Version(1, 0, 0, 0), Version(1, 0, 0), Version(0, 9, 95), Version(0, 8, 97)]
+
+
+    Some possible Edge cases tests:
+
+    Open tuple can give weird representation, but logic still works:
+
+    >>> version_edgecase = Version(1,)
+    >>> version_base = Version(1)
+    >>> version_edgecase
+    Version(1,)
+    >>> len(version_edgecase)
+    1
+    >>> version_edgecase == version_base
+    True
+    >>> version_edgecase < version_base
+    False
+    >>> version_edgecase > version_base
+    False
+
+    You can make your version *really* long. Why tho? No idea.
+
+    >>> version_really_long = Version(*[x for x in range(9999999)])
+    >>> len(version_really_long)
+    9999999
+    >>> version_really_long  # doctest: +ELLIPSIS
+    Version(0, 1, 2, ..., 9999997, 9999998)
+    >>> version_really_long[-1:]
+    (9999998,)
+    >>> str(version_really_long)  # doctest: +ELLIPSIS
+    '0.1.2...9999997.9999998'
+
+    Version parts can be... negative. I am going to rethink this life choice.
+
+    >>> version_with_negative = Version(-3, 5, -99)
+    >>> version_with_negative
+    Version(-3, 5, -99)
+    >>> str(version_with_negative)
+    '-3.5.-99'
     """
 
     def __init__(self, *args: int) -> None:
@@ -112,6 +150,7 @@ class Version:
         """Implementation of "==" internal type method for comparing values of same type
 
         >>> version_base = Version(2023, 3, 5)
+        >>> version_short = Version(4)
         >>> version_alternate = Version.from_string("2024.03.05")
         >>> version_with_zero = Version(2023, 3, 5, 0)
         >>> version_same = Version.from_string("2023.03.05")
@@ -121,8 +160,13 @@ class Version:
         True
         >>> version_base == version_with_zero
         False
+        >>> version_short == 4
+        False
+        >>> version_short == version_base
+        False
         """
-        self.__validate(b)
+        if not isinstance(b, type(self)):
+            return NotImplemented
 
         self_parts: tuple = self.__version_parts
         b_parts: tuple = tuple(b)  # type: ignore
@@ -133,6 +177,7 @@ class Version:
         """Implementation of ">" internal type method for comparing values of same type
 
         >>> version_base = Version(2023, 3, 5)
+        >>> version_short = Version(4)
         >>> version_greater_1 = Version(2023, 3, 5, 0)
         >>> version_greater_2 = Version(2024, 3, 5)
         >>> version_greater_3 = Version(2023, 3, 6)
@@ -146,8 +191,15 @@ class Version:
         >>> version_same = Version.from_string("2023.3.5")
         >>> version_base > version_same
         False
+        >>> version_short > 4  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: '>' not supported between instances of 'Version' and 'int'
+        >>> version_short > version_base
+        False
         """
-        self.__validate(b)
+        if not isinstance(b, type(self)):
+            return NotImplemented
 
         self_parts: tuple = self.__version_parts
         b_parts: tuple = tuple(b)  # type: ignore
@@ -158,6 +210,7 @@ class Version:
         """Implementation of "<" internal type method for comparing values of same type
 
         >>> version_base = Version(2023, 3, 5)
+        >>> version_short = Version(4)
         >>> version_greater_1 = Version(2023, 3, 5, 0)
         >>> version_greater_2 = Version(2024, 3, 5)
         >>> version_greater_3 = Version(2023, 3, 6)
@@ -171,8 +224,15 @@ class Version:
         >>> version_same = Version.from_string("2023.3.5")
         >>> version_base < version_same
         False
+        >>> version_short < 4  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: '<' not supported between instances of 'Version' and 'int'
+        >>> version_short < version_base
+        True
         """
-        self.__validate(b)
+        if not isinstance(b, type(self)):
+            return NotImplemented
 
         self_parts: tuple = self.__version_parts
         b_parts: tuple = tuple(b)  # type: ignore
@@ -183,6 +243,7 @@ class Version:
         """Implementation of ">=" internal type method for comparing values of same type
 
         >>> version_base = Version(2023, 3, 5)
+        >>> version_short = Version(4)
         >>> version_greater_1 = Version(2023, 3, 5, 0)
         >>> version_greater_2 = Version(2024, 3, 5)
         >>> version_greater_3 = Version(2023, 3, 6)
@@ -196,8 +257,15 @@ class Version:
         >>> version_same = Version.from_string("2023.3.5")
         >>> version_base >= version_same
         True
+        >>> version_short >= 4  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: '>=' not supported between instances of 'Version' and 'int'
+        >>> version_short >= version_base
+        False
         """
-        self.__validate(b)
+        if not isinstance(b, type(self)):
+            return NotImplemented
 
         self_parts: tuple = self.__version_parts
         b_parts: tuple = tuple(b)  # type: ignore
@@ -208,6 +276,7 @@ class Version:
         """Implementation of "<=" internal type method for comparing values of same type
 
         >>> version_base = Version(2023, 3, 5)
+        >>> version_short = Version(4)
         >>> version_greater_1 = Version(2023, 3, 5, 0)
         >>> version_greater_2 = Version(2024, 3, 5)
         >>> version_greater_3 = Version(2023, 3, 6)
@@ -221,44 +290,20 @@ class Version:
         >>> version_same = Version.from_string("2023.3.5")
         >>> version_base <= version_same
         True
+        >>> version_short <= 4  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        TypeError: '<=' not supported between instances of 'Version' and 'int'
+        >>> version_short <= version_base
+        True
         """
-        self.__validate(b)
+        if not isinstance(b, type(self)):
+            return NotImplemented
 
         self_parts: tuple = self.__version_parts
         b_parts: tuple = tuple(b)  # type: ignore
 
         return self_parts < b_parts or self_parts == b_parts
-
-    def __validate(self, b: object) -> None:
-        """Make base validation for all internal comparison methods - whether types and lengths are the same
-
-        >>> version_base = Version(2023, 3, 5)
-        >>> version_same = Version(2023, 3, 5)
-        >>> version_base == version_same
-        True
-        >>> version_base == 5.53  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-            ...
-        NotImplementedError: Can compare Version only with another Version
-        >>> version_base > 5.53  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-            ...
-        NotImplementedError: Can compare Version only with another Version
-        >>> version_base < 5.53  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-            ...
-        NotImplementedError: Can compare Version only with another Version
-        >>> version_base >= 5.53  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-            ...
-        NotImplementedError: Can compare Version only with another Version
-        >>> version_base <= 5.53  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-            ...
-        NotImplementedError: Can compare Version only with another Version
-        """
-        if not isinstance(b, type(self)):
-            raise NotImplementedError("Can compare Version only with another Version")
 
     def __repr__(self) -> str:
         """Representation internal method
